@@ -17,7 +17,7 @@ const deploy = async () => {
 
   authify = await new web3.eth.Contract(JSON.parse(authifyCompiled.interface))
     .deploy({ data: authifyCompiled.bytecode })
-    .send({ from: accounts[0], gas: "2000000" });
+    .send({ from: accounts[0] });
 
   console.log(authify.options.address);
 };

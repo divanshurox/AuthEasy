@@ -1,4 +1,4 @@
-import Web3 from "web3";
+const Web3 = require("web3");
 
 let web3;
 
@@ -12,4 +12,4 @@ if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
   web3 = new Web3(provider);
 }
 
-export default web3;
+module.exports = web3;
