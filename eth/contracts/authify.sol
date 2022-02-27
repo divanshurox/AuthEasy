@@ -21,7 +21,9 @@ contract authify{
         string name;
         string description;
         string manufacturerName;
+        string manufacturerLocation;
         string retailer;
+        uint status;
         string[] customers;
     }
 
@@ -37,33 +39,32 @@ contract authify{
         Customer memory c;
         c.name = _name;
         c.phone = _phone;
+        c.isValue = true;
         customerArr[_hashedEmail] = c;
         return true;
     }
 
-    function createProduct(string _code,string _name,string _desc,string _manufacturerName,string _retailer) public payable returns (uint) {
+    function createProduct(string _code,string _name,string _desc,uint _status,string _manufacturerName,string _manufacturerLocation) public payable returns (uint) {
         Product memory p;
+        p.name = _name;
         p.description = _desc;
         p.manufacturerName = _manufacturerName;
-        p.name = _name;
-        p.retailer = _retailer;
+        p.manufacturerLocation = _manufacturerLocation;
+        p.status = _status;
         productArr[_code] = p;
         return 1;
     }
 
     function createSeller(string _hashedEmail,string _name,string _location) public payable returns (bool) {
-        if(!sellerArr[_hashedEmail].isValue){
+        if(sellerArr[_hashedEmail].isValue){
             return false;
         }
         Seller memory s;
         s.name = _name;
         s.location = _location;
+        s.isValue = true;
+        sellerArr[_hashedEmail] = s;
         return true;
-    }
-
-    function getProductDetails(string _code) public view returns (string,string,string,string) {
-        Product memory p = productArr[_code];
-        return (p.name,p.description,p.manufacturerName,p.retailer);
     }
 
     function getCustomerDetails(string _hashedEmail) public view returns (string,string) {
@@ -76,16 +77,22 @@ contract authify{
         return (c.name,c.location);
     }
 
-    function getProductsBySeller(string _hashedEmail) public view returns (string[]){
-        return sellerArr[_hashedEmail].products;
-    }
-
     function getProductsByCustomer(string _hashedEmail) public view returns (string[]){
         return customerArr[_hashedEmail].products;
     }
 
+    function getOwnedProductDetails(string _code) public view returns (string,string) {
+        return (sellerArr[productArr[_code].retailer].name,sellerArr[productArr[_code].retailer].location);
+    }
+
+    function getNotOwnedProductDetails(string _code) public view returns (string,string,string,string,string) {
+        Product memory p = productArr[_code];
+        return (p.name,p.description,p.manufacturerName,p.manufacturerLocation,p.retailer);
+    }
+
     function addRetailerToProduct(string _code,string _hashedEmail) public payable returns (uint) {
         productArr[_code].retailer = _hashedEmail;
+        return 1;
     }
 
     function changeOwner(string _code,string _oldCustomer,string _newCustomer) public payable returns (bool) {
@@ -128,6 +135,21 @@ contract authify{
             if(customerArr[_customer].isValue){
                 customerArr[_customer].products.push(_code);
                 productArr[_code].customers.push(_customer);
+                productArr[_code].status = 1;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function reportStolen(string _code,string _customer) public payable returns (bool){
+        uint i;
+        if(customerArr[_customer].isValue){
+            uint len = customerArr[_customer].products.length;
+            for(i=0;i<len;i++){
+                if(compareStrings(customerArr[_customer].products[i],_code)){
+                    productArr[_code].status = 2;
+                }
                 return true;
             }
         }
@@ -149,6 +171,5 @@ contract authify{
         stringArr.length--;
         return true;
     }
-
 
 }

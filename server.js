@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const customerRouter = require("./routes/customer");
 const sellerRouter = require("./routes/seller");
+const Web3 = require("web3");
 
 require("dotenv").config();
 
